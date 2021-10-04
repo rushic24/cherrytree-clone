@@ -1,5 +1,5 @@
 import { BrowserRouter as Router, Route, Switch } from "react-router-dom";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import MEditor from "./components/MonacoEditor";
 import PEditor from "./components/AceEditor";
 import MobileTopAppBar from "./components/MobileTopAppBar";
@@ -189,7 +189,36 @@ function App() {
   const [isSameContentbuid, setIsSameContentbuid] = useState("");
   const [edited, setEdited] = useState(false);
   const [isDiff, setIsDiff] = useState(false);
-  const [state, setState] = useState({});
+  const [editorVal, setEditorVal] = useState("");
+  const [state, setState] = useState({
+    data: {
+      id: "root",
+      name: "Parent",
+      text: "",
+      children: [
+        {
+          id: "1",
+          name: "Child - 1",
+          text: "",
+        },
+        {
+          id: "3",
+          name: "Child - 3",
+          text: "TEXT_CH3",
+          children: [
+            {
+              id: "4",
+              name: "Child - 4",
+              text: "",
+            },
+          ],
+        },
+      ],
+    },
+    pid: 0,
+    selected_id: "0",
+    selected_code: "",
+  });
   const themeToggler = () => {
     theme === "light" ? setTheme("dark") : setTheme("light");
     localStorage.setItem("stagbin_theme", theme === "light" ? "dark" : "light");
@@ -247,51 +276,45 @@ function App() {
 
   // tree item click
   const onItemClick = (event, value) => {
-    // this.state.selected_id = value;
-    setState({
-      ...state,
-      selected_id: value,
-    });
+    state.selected_id = value;
+
     console.log(
       "🚀 ~ file: bottom-content.js ~ line 142 ~ BottomContent ~ onItemClick",
-      value
+      value,
+      state.selected_id
     );
 
-    if (value === this.state.selected_id) {
-      let newSelectedPath = findPath(this.state.data, "id", value);
+    if (value === state.selected_id) {
+      let newSelectedPath = findPath(state.data, "id", value);
       newSelectedPath = newSelectedPath === "" ? "" : newSelectedPath + ".text";
 
-      const newCode = _.get(this.state.data, newSelectedPath);
-      this.editor.setValue(newCode || "");
+      const newCode = _.get(state.data, newSelectedPath);
+      // this.editor.setValue(newCode || "");
+      // setEditorVal(newCode || "");
+      setData(newCode || "");
+
+      console.log(
+        "🚀 ~ file: App.js ~ line 296 ~ onItemClick ~ newCode",
+        newCode
+      );
     }
   };
-  const d = {
-    id: "root",
-    name: "Parent",
-    text: "",
-    children: [
-      {
-        id: "1",
-        name: "Child - 1",
-        text: "",
-      },
-      {
-        id: "3",
-        name: "Child - 3",
-        text: "TEXT_CH3",
-        children: [
-          {
-            id: "4",
-            name: "Child - 4",
-            text: "",
-          },
-        ],
-      },
-    ],
+
+  const onChange = (newValue) => {
+    // console.log("padat", this.props);
+
+    let newSelectedPath = findPath(state.data, "id", state.selected_id);
+    newSelectedPath = newSelectedPath === "" ? "" : newSelectedPath + ".text";
+
+    setState({ ...state, selected_code: newValue });
+    // setEditorVal(newValue);
+    setData(newValue);
+    _.set(state.data, newSelectedPath, newValue);
   };
+
   // Add Node Click
   const handleNodeAddClick = (e) => {
-    console.log("The handleNodeAddClick was clicked.");
+    console.log("The handleNodeAddClick was clicked.", state);
     const title = prompt("Enter the title for new node", "sometitle");
     setState({
       ...state,
@@ -346,6 +369,10 @@ function App() {
     </TreeItem>
   );
 
+  useEffect(() => {
+    console.log("staaaaateeeeeeeeeeeeeeeeee issssssssssssss ", state);
+  }, []);
+
   return (
     <ThemeProvider theme={theme === "light" ? lightTheme : darkTheme}>
       <>
@@ -353,7 +380,7 @@ function App() {
         <div onKeyDown={handleKeyDown} className="App" style={{}}>
           <Router basename={process.env.PUBLIC_URL}>
             <div>
-              <MediaQuery maxWidth={480}>
+              {/* <MediaQuery maxWidth={480}>
                 <MobileTopAppBar
                   toggle={themeToggler}
                   readOnlyToggle={setReadOnly}
@@ -374,7 +401,7 @@ function App() {
                   setEdited={setEdited}
                   setReadOnly={setReadOnly}
                 />
-              </MediaQuery>
+              </MediaQuery> */}
               <MediaQuery minWidth={480}>
                 <TopAppBar
                   toggle={themeToggler}
@@ -419,15 +446,14 @@ function App() {
                     defaultExpandIcon={<ChevronRightIcon />}
                     onNodeSelect={onItemClick}
                   >
-                    {renderTree(d)}
-                    <h1>sdsd</h1>
+                    {renderTree(state.data || {})}
                   </TreeView>
                 </div>
               </Grid>
               <Grid item xs={10}>
                 <Switch>
                   <Route exact path="/">
-                    <MediaQuery maxWidth={480}>
+                    {/* <MediaQuery maxWidth={480}>
                       <PEditor
                         curTheme={theme}
                         readOnly={readOnly}
@@ -447,7 +473,7 @@ function App() {
                         setIsSameContentbuid={setIsSameContentbuid}
                         edited={edited}
                       />
-                    </MediaQuery>
+                    </MediaQuery> */}
                     <MediaQuery minWidth={480}>
                       <MEditor
                         curTheme={theme}
@@ -468,6 +494,7 @@ function App() {
                         setIsSameContentbuid={setIsSameContentbuid}
                         edited={edited}
                         isDiff={isDiff}
+                        onChange={onChange}
                       />
                     </MediaQuery>
                   </Route>

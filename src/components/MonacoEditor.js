@@ -137,9 +137,10 @@ export default function MEditor(props) {
         options={{
           readOnly: readOnly,
         }}
-        onChange={(value, event) => {
-          setData(value);
-        }}
+        // onChange={(value, event) => {
+        //   setData(value);
+        // }}
+        onChange={props.onChange}
       />
     </div>
   );
