@@ -28,7 +28,8 @@ const getData = async (setData, id, base_url, setIsSameContentbuid) => {
     reqData = res.data[0];
     // console.log(reqData);
     setIsSameContentbuid(reqData.edit);
-    setData(reqData.data);
+    // setData(reqData.data);
+    setEditorV;
     // setLoading(false);
   }
   if (reqData.url) {
