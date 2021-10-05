@@ -1,4 +1,9 @@
-import { BrowserRouter as Router, Route, Switch } from "react-router-dom";
+import {
+  BrowserRouter as Router,
+  Route,
+  Switch,
+  useLocation,
+} from "react-router-dom";
 import { useState, useEffect } from "react";
 import MEditor from "./components/MonacoEditor";
 import PEditor from "./components/AceEditor";
@@ -81,8 +86,9 @@ const patch_save = async (
   if (res.status === 200) {
     navigator.clipboard.writeText(base_url + "/" + res.data.id);
     setSuccess(true);
+    console.log("res is", res);
     // console.log(base_url);
-    window.location.href = base_url + "/" + res.data.id;
+    // window.location.href = base_url + "/" + res.data.id;
   } else {
     console.log(res.status);
     console.log(res.data);
@@ -122,7 +128,8 @@ const post_save = async (
     navigator.clipboard.writeText(base_url + "/" + res.data.id);
     setSuccess(true);
     // console.log(base_url);
-    window.location.href = base_url + "/" + res.data.id;
+    console.log("res2 is", res);
+    // window.location.href = base_url + "/" + res.data.id;
   } else {
     console.log(res.status);
     console.log(res.data);
@@ -190,6 +197,7 @@ function App() {
   const [edited, setEdited] = useState(false);
   const [isDiff, setIsDiff] = useState(false);
   const [editorVal, setEditorVal] = useState("");
+  const [flag, setFlag] = useState(false);
   const [state, setState] = useState({
     data: {
       id: "root",
@@ -243,7 +251,8 @@ function App() {
     const system_id = await get_and_set_systemid();
     if (edited) {
       patch_save(
-        data,
+        // data,
+        JSON.stringify(state),
         url,
         system_id,
         base_url,
@@ -253,7 +262,8 @@ function App() {
       );
     } else {
       post_save(
-        data,
+        // data,
+        JSON.stringify(state),
         url,
         system_id,
         base_url,
@@ -276,7 +286,8 @@ function App() {
 
   // tree item click
   const onItemClick = (event, value) => {
-    state.selected_id = value;
+    // state.selected_id = value;
+    setState({ ...state, selected_id: value });
 
     console.log(
       "🚀 ~ file: bottom-content.js ~ line 142 ~ BottomContent ~ onItemClick",
@@ -284,30 +295,27 @@ function App() {
       state.selected_id
     );
 
-    if (value === state.selected_id) {
-      let newSelectedPath = findPath(state.data, "id", value);
-      newSelectedPath = newSelectedPath === "" ? "" : newSelectedPath + ".text";
+    let newSelectedPath = findPath(state.data, "id", value);
+    newSelectedPath = newSelectedPath === "" ? "" : newSelectedPath + ".text";
 
-      const newCode = _.get(state.data, newSelectedPath);
-      // this.editor.setValue(newCode || "");
-      // setEditorVal(newCode || "");
-      setData(newCode || "");
+    const newCode = _.get(state.data, newSelectedPath);
 
-      console.log(
-        "🚀 ~ file: App.js ~ line 296 ~ onItemClick ~ newCode",
-        newCode
-      );
-    }
+    setData(newCode || "");
+    console.log(
+      "🚀 ~ file: App.js ~ line 296 ~ onItemClick ~ newCode",
+      newCode,
+      "staye is ",
+      state,
+      "newselected path is",
+      newSelectedPath
+    );
   };
 
   const onChange = (newValue) => {
-    // console.log("padat", this.props);
-
     let newSelectedPath = findPath(state.data, "id", state.selected_id);
     newSelectedPath = newSelectedPath === "" ? "" : newSelectedPath + ".text";
 
     setState({ ...state, selected_code: newValue });
-    // setEditorVal(newValue);
     setData(newValue);
     _.set(state.data, newSelectedPath, newValue);
   };
@@ -369,9 +377,75 @@ function App() {
     </TreeItem>
   );
 
+  let reqData = {};
+  const getData = async (
+    setFlag,
+    state,
+    setState,
+    id,
+    base_url,
+    setIsSameContentbuid
+  ) => {
+    // setLoading(true);
+    const headers = {
+      buid: localStorage.getItem("stagbin_system_id"),
+    };
+    const res = await axios
+      .get("https://api.stagbin.tk/dev/content/" + id, { headers })
+      .catch((err) => {
+        // alert("invalid url");
+        window.location.href = base_url;
+        console.log(err);
+      });
+    console.log(res);
+    if (!res) {
+      return;
+    }
+    if (res.status === 200) {
+      reqData = res.data[0];
+      console.log(reqData);
+      setIsSameContentbuid(reqData.edit);
+      // setData(reqData.data);
+      console.log("starte is ", state);
+      console.log("reqw.data", JSON.parse(reqData.data));
+
+      setState(JSON.parse(reqData.data));
+      setFlag(true);
+      console.log("starte2 is ", state);
+      // setLoading(false);
+    }
+    if (reqData.url) {
+      window.location.href = reqData.data;
+    }
+  };
+  function set_data_if_exists(id) {
+    if (id) {
+      if (id.indexOf(".") !== -1) {
+        let ext = id.split(".").at(-1);
+        id = id.split(".")[0];
+        switch (ext) {
+          case "md":
+          case "markdown":
+            updateIsMarkdownView(true);
+            break;
+
+          default:
+            break;
+        }
+      }
+      if (!(!readOnly && edited)) setReadOnly(true);
+      setUrl(id);
+      if (!edited)
+        getData(setFlag, state, setState, id, base_url, setIsSameContentbuid);
+    }
+  }
   useEffect(() => {
-    console.log("staaaaateeeeeeeeeeeeeeeeee issssssssssssss ", state);
-  }, []);
+    const currPath = window.location.pathname.substring(1);
+    if (currPath !== "/") {
+      console.log("idd ", currPath);
+      set_data_if_exists(currPath);
+    }
+  }, [window.location]);
 
   return (
     <ThemeProvider theme={theme === "light" ? lightTheme : darkTheme}>
@@ -444,7 +518,7 @@ function App() {
                     defaultCollapseIcon={<ExpandMoreIcon />}
                     defaultExpanded={["root"]}
                     defaultExpandIcon={<ChevronRightIcon />}
-                    onNodeSelect={onItemClick}
+                    onNodeSelect={(e, v) => onItemClick(e, v)}
                   >
                     {renderTree(state.data || {})}
                   </TreeView>
@@ -499,7 +573,7 @@ function App() {
                     </MediaQuery>
                   </Route>
                   <Route path="/:id">
-                    <MediaQuery maxWidth={480}>
+                    {/* <MediaQuery maxWidth={480}>
                       <PEditor
                         curTheme={theme}
                         readOnly={readOnly}
@@ -518,28 +592,37 @@ function App() {
                         setIsSameContentbuid={setIsSameContentbuid}
                         edited={edited}
                       />
-                    </MediaQuery>
-                    <MediaQuery minWidth={480}>
-                      <MEditor
-                        curTheme={theme}
-                        readOnly={readOnly}
-                        setReadOnly={setReadOnly}
-                        url={url}
-                        setUrl={setUrl}
-                        data={data}
-                        setData={setData}
-                        oldData={oldData}
-                        setOldData={setOldData}
-                        // language={language}
-                        // setLanguage={setLanguage}
-                        base_url={base_url}
-                        updateIsMarkdownView={updateIsMarkdownView}
-                        isMarkdownView={isMarkdownView}
-                        setIsSameContentbuid={setIsSameContentbuid}
-                        edited={edited}
-                        isDiff={isDiff}
-                      />
-                    </MediaQuery>
+                    </MediaQuery> */}
+
+                    {data !== "" ? (
+                      <MediaQuery minWidth={480}>
+                        <MEditor
+                          curTheme={theme}
+                          readOnly={readOnly}
+                          setReadOnly={setReadOnly}
+                          url={url}
+                          setUrl={setUrl}
+                          // state={state}
+                          // setState={setState}
+                          data={data}
+                          // setData={setData}
+                          oldData={oldData}
+                          setOldData={setOldData}
+                          // language={language}
+                          // setLanguage={setLanguage}
+                          base_url={base_url}
+                          updateIsMarkdownView={updateIsMarkdownView}
+                          isMarkdownView={isMarkdownView}
+                          setIsSameContentbuid={setIsSameContentbuid}
+                          edited={edited}
+                          isDiff={isDiff}
+                          // onChange={onChange}
+                          setFlag={setFlag}
+                        />
+                      </MediaQuery>
+                    ) : (
+                      <></>
+                    )}
                   </Route>
                 </Switch>
               </Grid>
@@ -547,19 +630,6 @@ function App() {
             <div>
               <BottomAppBar curTheme={theme} />
             </div>
-            {/* <Grid spacing={2} container>
-              <Grid
-                item
-                style={{ display: "flex", gap: "1rem" }}
-                className="full-height"
-                lg={5}
-              >
-                
-              </Grid>
-              <Grid item lg={7}>
-                
-              </Grid>
-            </Grid> */}
           </Router>
           <Snackbar
             open={success}

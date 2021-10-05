@@ -2,35 +2,7 @@ import Editor, { DiffEditor } from "@monaco-editor/react";
 import MDEditor from "@uiw/react-md-editor";
 import { useParams } from "react-router-dom";
 import axios from "axios";
-
-let reqData = {};
-const getData = async (setData, id, base_url, setIsSameContentbuid) => {
-  // setLoading(true);
-  const headers = {
-    buid: localStorage.getItem("stagbin_system_id"),
-  };
-  const res = await axios
-    .get("https://api.stagbin.tk/dev/content/" + id, { headers })
-    .catch((err) => {
-      // alert("invalid url");
-      window.location.href = base_url;
-      console.log(err);
-    });
-  console.log(res);
-  if (!res) {
-    return;
-  }
-  if (res.status === 200) {
-    reqData = res.data[0];
-    console.log(reqData);
-    setIsSameContentbuid(reqData.edit);
-    setData(reqData.data);
-    // setLoading(false);
-  }
-  if (reqData.url) {
-    window.location.href = reqData.data;
-  }
-};
+import { useState, useEffect } from "react";
 
 export default function MEditor(props) {
   const curTheme = props.curTheme;
@@ -44,56 +16,16 @@ export default function MEditor(props) {
     props.updateIsMarkdownView,
   ];
   const [data, setData] = [props.data, props.setData];
+  const [state, setState] = [props.state, props.setState];
   const base_url = props.base_url;
   const setIsSameContentbuid = props.setIsSameContentbuid;
   const oldData = props.oldData;
   const edited = props.edited;
+  const setFlag = props.setFlag;
+
   // const [loading, setLoading] = useState(false);
   let { id } = useParams();
-  function set_data_if_exists() {
-    if (id) {
-      if (id.indexOf(".") !== -1) {
-        let ext = id.split(".").at(-1);
-        id = id.split(".")[0];
-        switch (ext) {
-          case "md":
-          case "markdown":
-            updateIsMarkdownView(true);
-            break;
-          case "js":
-          case "javascript":
-            setLanguage("javascript");
-            break;
-          case "c":
-          case "cpp":
-            setLanguage("cpp");
-            break;
-          case "py":
-          case "python":
-            setLanguage("python");
-            break;
-          case "html":
-            setLanguage("html");
-            break;
-          case "css":
-            setLanguage("css");
-            break;
-          case "java":
-            setLanguage("java");
-            break;
-          case "go":
-            setLanguage("go");
-            break;
-          default:
-            break;
-        }
-      }
-      if (!(!readOnly && edited)) setReadOnly(true);
-      setUrl(id);
-      if (!edited) getData(setData, id, base_url, setIsSameContentbuid);
-    }
-  }
-  set_data_if_exists();
+
   // if (data) {
   //   document.getElementById("m-placeholder").style.display = "none";
   // }
