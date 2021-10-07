@@ -34,6 +34,8 @@ import TreeItem from "@material-ui/lab/TreeItem";
 import { Grid } from "@material-ui/core";
 import ExpandMoreIcon from "@material-ui/icons/ExpandMore";
 import ChevronRightIcon from "@material-ui/icons/ChevronRight";
+import { API_URL } from "./constants";
+axios.defaults.headers.post["Access-Control-Allow-Origin"] = "*";
 
 var _ = require("lodash");
 
@@ -61,7 +63,7 @@ const patch_save = async (
   setSizeWarning,
   setDataEmptyError
 ) => {
-  const headers = { buid };
+  const headers = { buid, "Access-Control-Allow-Origin": "*" };
 
   function byteCount(s) {
     return encodeURI(s).split(/%..|./).length - 1;
@@ -77,11 +79,11 @@ const patch_save = async (
   }
 
   const res = await axios.patch(
-    "https://api.stagbin.tk/dev/content/" + id,
+    API_URL + "/content/" + id,
     {
       data,
     },
-    { headers }
+    { buid, "Access-Control-Allow-Origin": "*" }
   );
   if (res.status === 200) {
     navigator.clipboard.writeText(base_url + "/" + res.data.id);
@@ -119,7 +121,7 @@ const post_save = async (
     return;
   }
 
-  const res = await axios.post("https://api.stagbin.tk/dev/content", {
+  const res = await axios.post(API_URL + "/content", {
     data,
     buid,
     id,
@@ -387,11 +389,13 @@ function App() {
     setIsSameContentbuid
   ) => {
     // setLoading(true);
+
     const headers = {
       buid: localStorage.getItem("stagbin_system_id"),
+      "Access-Control-Allow-Origin": "*",
     };
     const res = await axios
-      .get("https://api.stagbin.tk/dev/content/" + id, { headers })
+      .get(API_URL + "/content/" + id, { headers })
       .catch((err) => {
         // alert("invalid url");
         window.location.href = base_url;

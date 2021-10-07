@@ -10,6 +10,7 @@ import "ace-builds/src-noconflict/theme-twilight";
 // this is an optional import just improved the interaction.
 import "ace-builds/src-noconflict/ext-language_tools";
 import "ace-builds/src-noconflict/ext-beautify";
+import { API_URL } from "../constants";
 
 let reqData = {};
 const getData = async (setData, id, base_url, setIsSameContentbuid) => {
@@ -18,7 +19,7 @@ const getData = async (setData, id, base_url, setIsSameContentbuid) => {
     buid: localStorage.getItem("stagbin_system_id"),
   };
   const res = await axios
-    .get("https://api.stagbin.tk/dev/content/" + id, { headers })
+    .get(API_URL + "/content/" + id, { headers })
     .catch((err) => {
       // alert("invalid url");
       window.location.href = base_url;
