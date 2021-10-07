@@ -1,4 +1,8 @@
-# Getting Started with Create React App
+## Ever wanted a treestyle web text editor like cherrytree? 
+Well here you go!!. Pastetreee is a fork of (StagBin)[https://github.com/StagBIN/frontend]
+
+
+
 
 This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
 
