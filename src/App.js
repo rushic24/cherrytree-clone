@@ -35,7 +35,6 @@ import { Grid } from "@material-ui/core";
 import ExpandMoreIcon from "@material-ui/icons/ExpandMore";
 import ChevronRightIcon from "@material-ui/icons/ChevronRight";
 import { API_URL } from "./constants";
-axios.defaults.headers.post["Access-Control-Allow-Origin"] = "*";
 
 var _ = require("lodash");
 
@@ -63,7 +62,7 @@ const patch_save = async (
   setSizeWarning,
   setDataEmptyError
 ) => {
-  const headers = { buid, "Access-Control-Allow-Origin": "*" };
+  const headers = { buid };
 
   function byteCount(s) {
     return encodeURI(s).split(/%..|./).length - 1;
@@ -83,7 +82,7 @@ const patch_save = async (
     {
       data,
     },
-    { buid, "Access-Control-Allow-Origin": "*" }
+    {buid}
   );
   if (res.status === 200) {
     navigator.clipboard.writeText(base_url + "/" + res.data.id);
@@ -130,7 +129,7 @@ const post_save = async (
     navigator.clipboard.writeText(base_url + "/" + res.data.id);
     setSuccess(true);
     // console.log(base_url);
-    console.log("res2 is", res);
+    // console.log("res2 is", res);
     // window.location.href = base_url + "/" + res.data.id;
   } else {
     console.log(res.status);
@@ -392,13 +391,12 @@ function App() {
 
     const headers = {
       buid: localStorage.getItem("stagbin_system_id"),
-      "Access-Control-Allow-Origin": "*",
     };
     const res = await axios
-      .get(API_URL + "/content/" + id, { headers })
+      .get(API_URL + "/content/" + id, {  })
       .catch((err) => {
         // alert("invalid url");
-        window.location.href = base_url;
+        // window.location.href = base_url;
         console.log(err);
       });
     console.log(res);
