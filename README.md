@@ -1,5 +1,5 @@
 ## Ever wanted a treestyle web text editor like cherrytree? 
-Well here you go!!. Pastetreee is a fork of (StagBin)[https://github.com/StagBIN/frontend]
+Well here you go!!. Pastetreee is a fork of [StagBin](https://github.com/StagBIN/frontend), where people can organize and share pastes categorized by treeview.
 
 
 
